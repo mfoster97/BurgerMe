@@ -10,8 +10,14 @@
 
   <form id="order-form">
     <label>
+      Customer Name:
+      <input type="text" id="customer-name" required placeholder="Enter name">
+    </label>
+
+    <label>
       Size:
-      <select id="size">
+      <select id="size" required>
+        <option value="" disabled selected>Select size</option>
         <option value="single">Single</option>
         <option value="double">Double</option>
       </select>
@@ -19,7 +25,8 @@
 
     <label>
       Protein:
-      <select id="protein">
+      <select id="protein" required>
+        <option value="" disabled selected>Select protein</option>
         <option value="beef">Beef</option>
         <option value="chicken">Chicken</option>
       </select>
@@ -27,7 +34,8 @@
 
     <label>
       Cheese Slices:
-      <select id="cheese-slices">
+      <select id="cheese-slices" required>
+        <option value="" disabled selected>Select slices</option>
         <option value="0">None</option>
         <option value="1">1 Slice</option>
         <option value="2">2 Slices</option>
@@ -37,6 +45,7 @@
     <label>
       Cheese Type:
       <select id="cheese-type" disabled>
+        <option value="" disabled selected>Select cheese</option>
         <option value="cheddar">Cheddar</option>
         <option value="pepperjack">Pepper Jack</option>
       </select>
@@ -52,6 +61,9 @@
     <li>Cheddar Slices: <span id="cheddar-count">0</span></li>
     <li>Pepper Jack Slices: <span id="pepperjack-count">0</span></li>
   </ul>
+
+  <h2>Order History</h2>
+  <ul id="order-history"></ul>
 
   <button id="reset">Reset Day</button>
 
