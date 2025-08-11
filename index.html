@@ -12,7 +12,7 @@
   <div class="app">
     <header class="site-header container">
       <div class="brand">
-        <div class="logo-circle">FG</div>
+        <button id="logo" class="logo-circle" title="Foster’s Garage">FG</button>
         <div class="titles">
           <h1>Foster’s Garage • Burger Orders</h1>
           <p class="muted">Classic look • Mobile first • Live shared totals</p>
@@ -93,7 +93,11 @@
           </div>
         </div>
 
-        <button id="reset" class="danger outline">Reset Shared Tally</button>
+        <div class="actions">
+          <button id="reset" class="danger outline">Reset Shared Tally</button>
+          <button id="full-reset" class="danger outline ghost" title="Hidden full reset">Full Reset</button>
+        </div>
+        <p id="full-reset-hint" class="muted tiny ghost">Hint: tap the FG badge 5× to reveal admin.</p>
       </section>
 
       <section class="card full">

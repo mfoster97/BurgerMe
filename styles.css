@@ -1,12 +1,10 @@
 :root{
-  /* Approximate Foster’s Garage vibe: dark, metal, brass accent */
   --bg: #0b0f14;
   --panel: #0f141c;
   --panel-2: #0b1018;
   --text: #f2f5f8;
   --muted: #aeb7c3;
-  --accent: #d4af37; /* brass/gold */
-  --accent-2: #ff7847; /* warm orange-red for emphasis */
+  --accent: #d4af37;
   --danger: #ff6b6b;
   --ring: rgba(212, 175, 55, 0.35);
   --radius: 18px;
@@ -36,9 +34,13 @@ body {
   color: #0b0f14; font-weight: 900;
   letter-spacing: 0.5px;
   box-shadow: var(--shadow);
+  border: none;
 }
+.logo-circle:focus { outline: none; box-shadow: 0 0 0 6px var(--ring); }
+
 .titles h1 { margin: 0 0 4px; font-size: clamp(1.2rem, 2vw + 1rem, 2rem); }
 .muted { color: var(--muted); }
+.tiny { font-size: 0.8rem; }
 
 .grid {
   display: grid;
@@ -119,6 +121,9 @@ button:active { transform: translateY(1px); }
 }
 .stat .label { display: block; color: var(--muted); font-size: 0.85rem; margin-bottom: 6px; }
 .stat .value { font-size: 1.6rem; font-weight: 900; }
+
+.actions { display: flex; gap: 10px; align-items: center; margin-top: 12px; }
+.ghost { display: none; }
 
 .history {
   display: grid;

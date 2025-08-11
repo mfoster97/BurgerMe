@@ -12,12 +12,15 @@ const cheddarCountEl = document.getElementById('cheddar-count');
 const pepperjackCountEl = document.getElementById('pepperjack-count');
 const orderHistoryEl = document.getElementById('order-history');
 const resetBtn = document.getElementById('reset');
+const fullResetBtn = document.getElementById('full-reset');
+const logoBtn = document.getElementById('logo');
+const hintEl = document.getElementById('full-reset-hint');
 
 // ---------- FIREBASE (client SDK via CDN) ----------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import {
   getFirestore, doc, setDoc, updateDoc, increment, onSnapshot,
-  collection, addDoc, query, orderBy, limit
+  collection, addDoc, query, orderBy, limit, getDocs, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
 // Your Firebase config
@@ -67,16 +70,24 @@ async function init() {
 
   // Form behavior
   function setCheeseTypeState() {
-    const value = cheeseSlicesEl.value;
-    const needsCheeseType = value !== "" && parseInt(value, 10) > 0;
+    const v = cheeseSlicesEl.value;
+    const n = Number(v);
+    const needsCheeseType = Number.isFinite(n) && n > 0;
+
     cheeseTypeEl.disabled = !needsCheeseType;
     cheeseTypeEl.required = needsCheeseType;
-    if (!needsCheeseType) cheeseTypeEl.value = "";
-  }
-  cheeseSlicesEl.addEventListener('change', setCheeseTypeState);
-  setCheeseTypeState();
 
-  formEl.addEventListener('submit', async (e) => {
+    if (!needsCheeseType) {
+      cheeseTypeEl.value = "";
+    } else {
+      if (!cheeseTypeEl.value) cheeseTypeEl.value = "";
+    }
+  }
+  ["change","input"].forEach(evt => cheeseSlicesEl.addEventListener(evt, setCheeseTypeState));
+  document.addEventListener("DOMContentLoaded", setCheeseTypeState);
+  formEl.addEventListener("reset", () => setTimeout(setCheeseTypeState, 0));
+  setCheeseTypeState();
+formEl.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!formEl.checkValidity()) {
       formEl.reportValidity();
@@ -118,6 +129,42 @@ async function init() {
   resetBtn.addEventListener('click', async () => {
     if (!confirm('Reset the shared tally to zero? (Order history remains)')) return;
     await setDoc(tallyRef, { patties: 0, buns: 0, cheddar: 0, pepperjack: 0 });
+  });
+
+  // ---------- Hidden Full Reset (orders + tally) ----------
+  // Reveal mechanism: tap/click the FG logo 5× within 2s
+  let taps = 0, timer = null;
+  logoBtn.addEventListener('click', () => {
+    taps += 1;
+    if (taps === 1) {
+      timer = setTimeout(() => { taps = 0; }, 2000);
+    }
+    if (taps >= 5) {
+      clearTimeout(timer);
+      taps = 0;
+      fullResetBtn.classList.remove('ghost');
+      hintEl.classList.add('ghost');
+      fullResetBtn.focus();
+    }
+  });
+
+  fullResetBtn.addEventListener('click', async () => {
+    const phrase = prompt('Type DELETE to remove ALL orders and reset tally:');
+    if (phrase !== 'DELETE') return;
+
+    // Delete all orders
+    try {
+      const snapshot = await getDocs(ordersCol);
+      for (const docSnap of snapshot.docs) {
+        await deleteDoc(docSnap.ref);
+      }
+      // Reset tally after deletes
+      await setDoc(tallyRef, { patties: 0, buns: 0, cheddar: 0, pepperjack: 0 });
+      alert('All orders deleted and tally reset.');
+    } catch (e) {
+      console.error('Full reset failed:', e);
+      alert('Full reset failed. See console.');
+    }
   });
 }
 
