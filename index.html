@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Burger Order Tracker</title>
   <link rel="stylesheet" href="styles.css"/>
 </head>
@@ -65,8 +66,9 @@
   <h2>Order History</h2>
   <ul id="order-history"></ul>
 
-  <button id="reset">Reset Day</button>
+  <button id="reset">Reset Shared Tally</button>
 
-  <script src="app.js"></script>
+  <!-- App code (ES modules). No bundler required. -->
+  <script type="module" src="app.js"></script>
 </body>
 </html>
