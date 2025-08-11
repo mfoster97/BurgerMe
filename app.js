@@ -20,10 +20,10 @@ const hintEl = document.getElementById('full-reset-hint');
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import {
   getFirestore, doc, setDoc, updateDoc, increment, onSnapshot,
-  collection, addDoc, query, orderBy, limit, getDocs, deleteDoc, getDoc
+  collection, addDoc, query, orderBy, limit, getDocs, deleteDoc, runTransaction, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-// Your Firebase config (from your earlier message)
+// Your Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyD4jy8pF6ySC1HSUP0Y3KpVH6QTKLqvjuo",
   authDomain: "burgerme-85c06.firebaseapp.com",
@@ -41,14 +41,39 @@ async function init() {
   const tallyRef = doc(db, "meta", "tally");
   const ordersCol = collection(db, "orders");
 
-  // Ensure tally doc exists ONCE (avoid decreasing on every load)
+  // Defensive init: if tally is missing, compute it from existing orders.
   try {
-    const existing = await getDoc(tallyRef);
-    if (!existing.exists()) {
-      await setDoc(tallyRef, { patties: 0, buns: 0, cheddar: 0, pepperjack: 0 });
+    const exists = await getDoc(tallyRef);
+    if (!exists.exists()) {
+      // Aggregate from orders (client-side)
+      const snap = await getDocs(ordersCol);
+      let patties = 0, buns = 0, cheddar = 0, pepperjack = 0;
+      snap.forEach((d) => {
+        const o = d.data();
+        const p = o.size === 'double' ? 2 : 1;
+        patties += p;
+        buns += 2;
+        if (o.cheeseSlices > 0) {
+          if (o.cheeseType === 'cheddar') cheddar += o.cheeseSlices;
+          if (o.cheeseType === 'pepperjack') pepperjack += o.cheeseSlices;
+        }
+      });
+
+      // Set in a transaction to avoid races
+      await runTransaction(db, async (tx) => {
+        const again = await tx.get(tallyRef);
+        if (!again.exists()) {
+          tx.set(tallyRef, { patties, buns, cheddar, pepperjack });
+          console.log("[init] tally created from existing orders", { patties, buns, cheddar, pepperjack });
+        } else {
+          console.log("[init] tally existed during init, skipped create");
+        }
+      });
+    } else {
+      console.log("[init] tally exists");
     }
   } catch (e) {
-    console.error("Init tally failed:", e);
+    console.error("[init] failed to ensure tally", e);
   }
 
   // Live tally
@@ -75,7 +100,7 @@ async function init() {
     });
   });
 
-  // Form behavior (robust cheese-type toggle)
+  // Robust cheese-type toggle
   function setCheeseTypeState() {
     const v = cheeseSlicesEl.value;
     const n = Number(v);
@@ -93,6 +118,7 @@ async function init() {
   formEl.addEventListener("reset", () => setTimeout(setCheeseTypeState, 0));
   setCheeseTypeState();
 
+  // Submit order
   formEl.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!formEl.checkValidity()) {
@@ -131,17 +157,18 @@ async function init() {
     }
   });
 
-  // Reset shared tally (strict rules will block decreases)
+  // Reset shared tally (allowed only if your rules permit decreases)
   resetBtn.addEventListener('click', async () => {
     try {
       await setDoc(tallyRef, { patties: 0, buns: 0, cheddar: 0, pepperjack: 0 });
+      console.log("[reset] tally set to zero by client request");
     } catch (e) {
-      alert('Reset is blocked by security rules (decreases not allowed). Use the Firebase Console or temporary relaxed rules.');
+      alert('Reset may be blocked by security rules. Use the Firebase Console or temporary relaxed rules.');
       console.error(e);
     }
   });
 
-  // Hidden Full Reset (orders + tally), likely blocked by strict rules
+  // Hidden Full Reset (orders + tally), works only if rules allow deletes/decreases
   let taps = 0, timer = null;
   logoBtn.addEventListener('click', () => {
     taps += 1;
@@ -162,15 +189,12 @@ async function init() {
       for (const docSnap of snapshot.docs) {
         await deleteDoc(docSnap.ref);
       }
-      try {
-        await setDoc(tallyRef, { patties: 0, buns: 0, cheddar: 0, pepperjack: 0 });
-      } catch (e) {
-        console.error('Tally reset blocked by rules:', e);
-      }
+      await setDoc(tallyRef, { patties: 0, buns: 0, cheddar: 0, pepperjack: 0 });
       alert('All orders deleted and tally reset (if rules allow).');
+      console.log("[full-reset] all orders deleted; tally set to zero");
     } catch (e) {
       console.error('Full reset failed:', e);
-      alert('Full reset blocked by security rules. Use console or temporary relaxed rules. See console for details.');
+      alert('Full reset likely blocked by rules. Use console or temporary relaxed rules. See console for details.');
     }
   });
 }
