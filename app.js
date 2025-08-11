@@ -20,10 +20,10 @@ const hintEl = document.getElementById('full-reset-hint');
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import {
   getFirestore, doc, setDoc, updateDoc, increment, onSnapshot,
-  collection, addDoc, query, orderBy, limit, getDocs, deleteDoc
+  collection, addDoc, query, orderBy, limit, getDocs, deleteDoc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-// Your Firebase config
+// Your Firebase config (from your earlier message)
 const firebaseConfig = {
   apiKey: "AIzaSyD4jy8pF6ySC1HSUP0Y3KpVH6QTKLqvjuo",
   authDomain: "burgerme-85c06.firebaseapp.com",
@@ -41,8 +41,15 @@ async function init() {
   const tallyRef = doc(db, "meta", "tally");
   const ordersCol = collection(db, "orders");
 
-  // Ensure tally doc exists
-  await setDoc(tallyRef, { patties: 0, buns: 0, cheddar: 0, pepperjack: 0 }, { merge: true });
+  // Ensure tally doc exists ONCE (avoid decreasing on every load)
+  try {
+    const existing = await getDoc(tallyRef);
+    if (!existing.exists()) {
+      await setDoc(tallyRef, { patties: 0, buns: 0, cheddar: 0, pepperjack: 0 });
+    }
+  } catch (e) {
+    console.error("Init tally failed:", e);
+  }
 
   // Live tally
   onSnapshot(tallyRef, (snap) => {
@@ -68,26 +75,25 @@ async function init() {
     });
   });
 
-  // Form behavior
+  // Form behavior (robust cheese-type toggle)
   function setCheeseTypeState() {
     const v = cheeseSlicesEl.value;
     const n = Number(v);
     const needsCheeseType = Number.isFinite(n) && n > 0;
-
     cheeseTypeEl.disabled = !needsCheeseType;
     cheeseTypeEl.required = needsCheeseType;
-
     if (!needsCheeseType) {
       cheeseTypeEl.value = "";
-    } else {
-      if (!cheeseTypeEl.value) cheeseTypeEl.value = "";
+    } else if (!cheeseTypeEl.value) {
+      cheeseTypeEl.value = "";
     }
   }
   ["change","input"].forEach(evt => cheeseSlicesEl.addEventListener(evt, setCheeseTypeState));
   document.addEventListener("DOMContentLoaded", setCheeseTypeState);
   formEl.addEventListener("reset", () => setTimeout(setCheeseTypeState, 0));
   setCheeseTypeState();
-formEl.addEventListener('submit', async (e) => {
+
+  formEl.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!formEl.checkValidity()) {
       formEl.reportValidity();
@@ -125,23 +131,23 @@ formEl.addEventListener('submit', async (e) => {
     }
   });
 
-  // Reset shared tally (keeps history)
+  // Reset shared tally (strict rules will block decreases)
   resetBtn.addEventListener('click', async () => {
-    if (!confirm('Reset the shared tally to zero? (Order history remains)')) return;
-    await setDoc(tallyRef, { patties: 0, buns: 0, cheddar: 0, pepperjack: 0 });
+    try {
+      await setDoc(tallyRef, { patties: 0, buns: 0, cheddar: 0, pepperjack: 0 });
+    } catch (e) {
+      alert('Reset is blocked by security rules (decreases not allowed). Use the Firebase Console or temporary relaxed rules.');
+      console.error(e);
+    }
   });
 
-  // ---------- Hidden Full Reset (orders + tally) ----------
-  // Reveal mechanism: tap/click the FG logo 5× within 2s
+  // Hidden Full Reset (orders + tally), likely blocked by strict rules
   let taps = 0, timer = null;
   logoBtn.addEventListener('click', () => {
     taps += 1;
-    if (taps === 1) {
-      timer = setTimeout(() => { taps = 0; }, 2000);
-    }
+    if (taps === 1) timer = setTimeout(() => { taps = 0; }, 2000);
     if (taps >= 5) {
-      clearTimeout(timer);
-      taps = 0;
+      clearTimeout(timer); taps = 0;
       fullResetBtn.classList.remove('ghost');
       hintEl.classList.add('ghost');
       fullResetBtn.focus();
@@ -151,19 +157,20 @@ formEl.addEventListener('submit', async (e) => {
   fullResetBtn.addEventListener('click', async () => {
     const phrase = prompt('Type DELETE to remove ALL orders and reset tally:');
     if (phrase !== 'DELETE') return;
-
-    // Delete all orders
     try {
       const snapshot = await getDocs(ordersCol);
       for (const docSnap of snapshot.docs) {
         await deleteDoc(docSnap.ref);
       }
-      // Reset tally after deletes
-      await setDoc(tallyRef, { patties: 0, buns: 0, cheddar: 0, pepperjack: 0 });
-      alert('All orders deleted and tally reset.');
+      try {
+        await setDoc(tallyRef, { patties: 0, buns: 0, cheddar: 0, pepperjack: 0 });
+      } catch (e) {
+        console.error('Tally reset blocked by rules:', e);
+      }
+      alert('All orders deleted and tally reset (if rules allow).');
     } catch (e) {
       console.error('Full reset failed:', e);
-      alert('Full reset failed. See console.');
+      alert('Full reset blocked by security rules. Use console or temporary relaxed rules. See console for details.');
     }
   });
 }
