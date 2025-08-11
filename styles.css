@@ -1,46 +1,133 @@
-body {
-  font-family: sans-serif;
-  margin: 20px;
-  background: #f8f8f8;
-  color: #333;
+:root{
+  --bg: #0b0f19;
+  --panel: #10172a;
+  --panel-2: #0d1426;
+  --text: #e8edf3;
+  --muted: #a6b1c2;
+  --accent: #6ad1ff;
+  --accent-2: #98ffa7;
+  --danger: #ff6b6b;
+  --ring: rgba(106, 209, 255, 0.35);
+  --radius: 16px;
+  --shadow: 0 20px 50px rgba(0,0,0,0.35);
 }
 
-h1 { margin-bottom: 10px; }
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Helvetica, Arial;
+  color: var(--text);
+  background:
+    radial-gradient(1200px 800px at 10% -10%, #132036 0%, transparent 60%),
+    radial-gradient(1000px 700px at 100% 0%, #1b2a46 0%, transparent 60%),
+    var(--bg);
+}
 
-form {
+.container { width: min(1080px, 92%); margin: 0 auto; }
+
+.site-header { padding: 28px 0 12px; }
+.site-header h1 { margin: 0 0 4px; font-size: clamp(1.5rem, 2.2vw + 1rem, 2.4rem); }
+.muted { color: var(--muted); }
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding-bottom: 28px;
+}
+@media (min-width: 900px) {
+  .grid { grid-template-columns: 1fr 1fr; }
+  .full { grid-column: 1 / -1; }
+}
+
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent 60%), var(--panel);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+h2 { margin: 0 0 12px; font-size: 1.15rem; }
+
+.form { display: grid; gap: 12px; }
+.field { display: grid; gap: 6px; }
+.field.two-col { grid-template-columns: 1fr 1fr; gap: 12px; }
+label { font-weight: 600; }
+
+input, select, button {
+  font-size: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  color: var(--text);
+  outline: none;
+}
+input::placeholder { color: #9fb0c9; }
+input:focus, select:focus, button:focus {
+  box-shadow: 0 0 0 6px var(--ring);
+  border-color: var(--accent);
+}
+
+button {
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  transition: transform .05s ease, filter .2s ease;
+}
+button:hover { filter: brightness(1.05); }
+button:active { transform: translateY(1px); }
+
+.primary {
+  background: linear-gradient(180deg, var(--accent), #4db4e4);
+  color: #071019;
+  border: none;
+}
+
+.outline {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.danger { color: #ffd6d6; border-color: rgba(255, 107, 107, 0.55); }
+.danger:hover { background: rgba(255, 107, 107, 0.12); }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media (min-width: 540px) {
+  .stats { grid-template-columns: repeat(4, 1fr); }
+}
+.stat {
+  background: var(--panel-2);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 14px;
+  text-align: center;
+}
+.stat .label { display: block; color: var(--muted); font-size: 0.85rem; margin-bottom: 6px; }
+.stat .value { font-size: 1.6rem; font-weight: 800; }
+
+.history {
   display: grid;
   gap: 10px;
-  max-width: 320px;
-  background: #fff;
-  padding: 15px;
-  border: 1px solid #ccc;
+  max-height: 55vh;
+  overflow: auto;
+  scrollbar-gutter: stable;
 }
-
-label {
+.history li {
+  background: var(--panel-2);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 10px 12px;
   display: flex;
-  flex-direction: column;
-  font-weight: bold;
+  justify-content: space-between;
+  gap: 10px;
 }
+.history li .meta { color: var(--muted); font-size: 0.85rem; }
 
-input, select, button { padding: 6px; }
-
-h2 { margin-top: 30px; }
-
-ul { list-style: none; padding: 0; }
-li { margin: 5px 0; }
-
-#order-history li {
-  background: #fff;
-  padding: 8px;
-  border: 1px solid #ccc;
-}
-
-#reset {
-  margin-top: 10px;
-  background: #d9534f;
-  color: white;
-  border: none;
-  padding: 8px;
-  cursor: pointer;
-}
-#reset:hover { background: #c9302c; }
+.footer { padding: 24px 0 40px; text-align: center; }

@@ -2,73 +2,103 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>Burger Order Tracker</title>
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
-  <h1>Burger Order Tracker</h1>
+  <div class="app">
+    <header class="site-header container">
+      <h1>🍔 Burger Order Tracker</h1>
+      <p class="muted">Place one burger per order. Live shared totals via Firestore.</p>
+    </header>
 
-  <form id="order-form">
-    <label>
-      Customer Name:
-      <input type="text" id="customer-name" required placeholder="Enter name">
-    </label>
+    <main class="container grid">
+      <section class="card">
+        <h2>New Order</h2>
+        <form id="order-form" class="form">
+          <div class="field">
+            <label for="customer-name">Customer Name</label>
+            <input type="text" id="customer-name" required placeholder="e.g., Alex">
+          </div>
 
-    <label>
-      Size:
-      <select id="size" required>
-        <option value="" disabled selected>Select size</option>
-        <option value="single">Single</option>
-        <option value="double">Double</option>
-      </select>
-    </label>
+          <div class="field">
+            <label for="size">Size</label>
+            <select id="size" required>
+              <option value="" disabled selected>Select size</option>
+              <option value="single">Single</option>
+              <option value="double">Double</option>
+            </select>
+          </div>
 
-    <label>
-      Protein:
-      <select id="protein" required>
-        <option value="" disabled selected>Select protein</option>
-        <option value="beef">Beef</option>
-        <option value="chicken">Chicken</option>
-      </select>
-    </label>
+          <div class="field two-col">
+            <div>
+              <label for="protein">Protein</label>
+              <select id="protein" required>
+                <option value="" disabled selected>Select protein</option>
+                <option value="beef">Beef 🐄</option>
+                <option value="chicken">Chicken 🐔</option>
+              </select>
+            </div>
+            <div>
+              <label for="cheese-slices">Cheese Slices</label>
+              <select id="cheese-slices" required>
+                <option value="" disabled selected>Select slices</option>
+                <option value="0">None</option>
+                <option value="1">1 Slice</option>
+                <option value="2">2 Slices</option>
+              </select>
+            </div>
+          </div>
 
-    <label>
-      Cheese Slices:
-      <select id="cheese-slices" required>
-        <option value="" disabled selected>Select slices</option>
-        <option value="0">None</option>
-        <option value="1">1 Slice</option>
-        <option value="2">2 Slices</option>
-      </select>
-    </label>
+          <div class="field">
+            <label for="cheese-type">Cheese Type</label>
+            <select id="cheese-type" disabled>
+              <option value="" disabled selected>Select cheese</option>
+              <option value="cheddar">Cheddar</option>
+              <option value="pepperjack">Pepper Jack</option>
+            </select>
+          </div>
 
-    <label>
-      Cheese Type:
-      <select id="cheese-type" disabled>
-        <option value="" disabled selected>Select cheese</option>
-        <option value="cheddar">Cheddar</option>
-        <option value="pepperjack">Pepper Jack</option>
-      </select>
-    </label>
+          <button class="primary" type="submit">Place Order</button>
+        </form>
+      </section>
 
-    <button type="submit">Place Order</button>
-  </form>
+      <section class="card">
+        <h2>Ingredient Tally</h2>
+        <div class="stats">
+          <div class="stat">
+            <span class="label">Patties</span>
+            <span class="value" id="patties-count">0</span>
+          </div>
+          <div class="stat">
+            <span class="label">Buns</span>
+            <span class="value" id="buns-count">0</span>
+          </div>
+          <div class="stat">
+            <span class="label">Cheddar</span>
+            <span class="value" id="cheddar-count">0</span>
+          </div>
+          <div class="stat">
+            <span class="label">Pepper Jack</span>
+            <span class="value" id="pepperjack-count">0</span>
+          </div>
+        </div>
 
-  <h2>Ingredient Tally</h2>
-  <ul>
-    <li>Total Patties: <span id="patties-count">0</span></li>
-    <li>Total Buns: <span id="buns-count">0</span></li>
-    <li>Cheddar Slices: <span id="cheddar-count">0</span></li>
-    <li>Pepper Jack Slices: <span id="pepperjack-count">0</span></li>
-  </ul>
+        <button id="reset" class="danger outline">Reset Shared Tally</button>
+      </section>
 
-  <h2>Order History</h2>
-  <ul id="order-history"></ul>
+      <section class="card full">
+        <h2>Order History</h2>
+        <ul id="order-history" class="history"></ul>
+      </section>
+    </main>
 
-  <button id="reset">Reset Shared Tally</button>
+    <footer class="container footer muted">
+      <small>Data shared via Firebase Firestore • Built for speed & touch</small>
+    </footer>
+  </div>
 
-  <!-- App code (ES modules). No bundler required. -->
   <script type="module" src="app.js"></script>
 </body>
 </html>

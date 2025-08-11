@@ -20,7 +20,7 @@ import {
   collection, addDoc, query, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-// Your Firebase config (from your message)
+// Your Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyD4jy8pF6ySC1HSUP0Y3KpVH6QTKLqvjuo",
   authDomain: "burgerme-85c06.firebaseapp.com",
@@ -31,7 +31,6 @@ const firebaseConfig = {
   measurementId: "G-Z3K14KLE48"
 };
 
-// Wrap async startup to avoid top-level await
 async function init() {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
@@ -39,19 +38,10 @@ async function init() {
   const tallyRef = doc(db, "meta", "tally");
   const ordersCol = collection(db, "orders");
 
-  // Ensure a tally doc exists (merge keeps existing values)
-  try {
-    await setDoc(
-      tallyRef,
-      { patties: 0, buns: 0, cheddar: 0, pepperjack: 0 },
-      { merge: true }
-    );
-  } catch (e) {
-    console.error("Error ensuring tally doc:", e);
-  }
+  // Ensure tally doc exists
+  await setDoc(tallyRef, { patties: 0, buns: 0, cheddar: 0, pepperjack: 0 }, { merge: true });
 
-  // ---------- LIVE SUBSCRIPTIONS ----------
-  // Tally listener (updates the numbers in real time)
+  // Live tally
   onSnapshot(tallyRef, (snap) => {
     const t = snap.data() || { patties: 0, buns: 0, cheddar: 0, pepperjack: 0 };
     pattiesCountEl.textContent = t.patties ?? 0;
@@ -60,7 +50,7 @@ async function init() {
     pepperjackCountEl.textContent = t.pepperjack ?? 0;
   });
 
-  // Order history listener (most recent first; limit to 200)
+  // Live order history (most recent first)
   onSnapshot(query(ordersCol, orderBy("ts", "desc"), limit(200)), (snap) => {
     orderHistoryEl.innerHTML = "";
     snap.forEach((docSnap) => {
@@ -69,12 +59,13 @@ async function init() {
       const cheesePart = (o.cheeseSlices > 0)
         ? `, ${o.cheeseSlices} slice(s) ${o.cheeseType}`
         : ', no cheese';
-      li.textContent = `${o.name} - ${o.size} ${o.protein} burger${cheesePart}`;
+      li.innerHTML = `<span>${o.name} — <strong>${o.size}</strong> ${o.protein} burger${cheesePart}</span>
+                      <span class="meta">${new Date(o.ts).toLocaleTimeString()}</span>`;
       orderHistoryEl.appendChild(li);
     });
   });
 
-  // ---------- FORM BEHAVIOR ----------
+  // Form behavior
   function setCheeseTypeState() {
     const value = cheeseSlicesEl.value;
     const needsCheeseType = value !== "" && parseInt(value, 10) > 0;
@@ -93,8 +84,8 @@ async function init() {
     }
 
     const name = nameEl.value.trim();
-    const size = sizeEl.value;               // 'single' | 'double'
-    const protein = proteinEl.value;         // 'beef' | 'chicken'
+    const size = sizeEl.value;
+    const protein = proteinEl.value;
     const cheeseSlices = parseInt(cheeseSlicesEl.value, 10);
     const cheeseType = cheeseSlices > 0 ? cheeseTypeEl.value : null;
 
@@ -105,42 +96,28 @@ async function init() {
       pepperjack: (cheeseSlices > 0 && cheeseType === 'pepperjack') ? cheeseSlices : 0
     };
 
-    const order = {
-      name, size, protein,
-      cheeseSlices,
-      cheeseType,
-      ts: Date.now()
-    };
+    const order = { name, size, protein, cheeseSlices, cheeseType, ts: Date.now() };
 
     try {
-      // Add order to history
       await addDoc(ordersCol, order);
-      // Atomically increment tallies
       await updateDoc(tallyRef, {
         patties: increment(deltas.patties),
         buns: increment(deltas.buns),
         cheddar: increment(deltas.cheddar),
         pepperjack: increment(deltas.pepperjack)
       });
-    } catch (e) {
-      console.error("Error writing order/tally:", e);
+      formEl.reset();
+      setCheeseTypeState();
+    } catch (err) {
       alert("Could not submit order. Please try again.");
-      return;
+      console.error(err);
     }
-
-    // Reset form to placeholders
-    formEl.reset();
-    setCheeseTypeState();
   });
 
-  // ---------- RESET (shared) ----------
+  // Reset shared tally (keeps history)
   resetBtn.addEventListener('click', async () => {
     if (!confirm('Reset the shared tally to zero? (Order history remains)')) return;
-    try {
-      await setDoc(tallyRef, { patties: 0, buns: 0, cheddar: 0, pepperjack: 0 });
-    } catch (e) {
-      console.error("Error resetting tally:", e);
-    }
+    await setDoc(tallyRef, { patties: 0, buns: 0, cheddar: 0, pepperjack: 0 });
   });
 }
 
