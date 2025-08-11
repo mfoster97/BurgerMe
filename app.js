@@ -55,10 +55,10 @@ async function init() {
     orderHistoryEl.innerHTML = "";
     snap.forEach((docSnap) => {
       const o = docSnap.data();
-      const li = document.createElement('li');
       const cheesePart = (o.cheeseSlices > 0)
         ? `, ${o.cheeseSlices} slice(s) ${o.cheeseType}`
         : ', no cheese';
+      const li = document.createElement('li');
       li.innerHTML = `<span>${o.name} — <strong>${o.size}</strong> ${o.protein} burger${cheesePart}</span>
                       <span class="meta">${new Date(o.ts).toLocaleTimeString()}</span>`;
       orderHistoryEl.appendChild(li);

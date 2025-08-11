@@ -3,14 +3,21 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <title>Burger Order Tracker</title>
+  <title>Burger Order Tracker • Foster Theme</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
   <div class="app">
     <header class="site-header container">
-      <h1>🍔 Burger Order Tracker</h1>
-      <p class="muted">Place one burger per order. Live shared totals via Firestore.</p>
+      <div class="brand">
+        <div class="logo-circle">FG</div>
+        <div class="titles">
+          <h1>Foster’s Garage • Burger Orders</h1>
+          <p class="muted">Classic look • Mobile first • Live shared totals</p>
+        </div>
+      </div>
     </header>
 
     <main class="container grid">
@@ -22,24 +29,26 @@
             <input type="text" id="customer-name" required placeholder="e.g., Alex">
           </div>
 
-          <div class="field">
-            <label for="size">Size</label>
-            <select id="size" required>
-              <option value="" disabled selected>Select size</option>
-              <option value="single">Single</option>
-              <option value="double">Double</option>
-            </select>
-          </div>
-
           <div class="field two-col">
+            <div>
+              <label for="size">Size</label>
+              <select id="size" required>
+                <option value="" disabled selected>Select size</option>
+                <option value="single">Single</option>
+                <option value="double">Double</option>
+              </select>
+            </div>
             <div>
               <label for="protein">Protein</label>
               <select id="protein" required>
                 <option value="" disabled selected>Select protein</option>
-                <option value="beef">Beef 🐄</option>
-                <option value="chicken">Chicken 🐔</option>
+                <option value="beef">Beef</option>
+                <option value="chicken">Chicken</option>
               </select>
             </div>
+          </div>
+
+          <div class="field two-col">
             <div>
               <label for="cheese-slices">Cheese Slices</label>
               <select id="cheese-slices" required>
@@ -49,15 +58,14 @@
                 <option value="2">2 Slices</option>
               </select>
             </div>
-          </div>
-
-          <div class="field">
-            <label for="cheese-type">Cheese Type</label>
-            <select id="cheese-type" disabled>
-              <option value="" disabled selected>Select cheese</option>
-              <option value="cheddar">Cheddar</option>
-              <option value="pepperjack">Pepper Jack</option>
-            </select>
+            <div>
+              <label for="cheese-type">Cheese Type</label>
+              <select id="cheese-type" disabled>
+                <option value="" disabled selected>Select cheese</option>
+                <option value="cheddar">Cheddar</option>
+                <option value="pepperjack">Pepper Jack</option>
+              </select>
+            </div>
           </div>
 
           <button class="primary" type="submit">Place Order</button>
@@ -95,7 +103,7 @@
     </main>
 
     <footer class="container footer muted">
-      <small>Data shared via Firebase Firestore • Built for speed & touch</small>
+      <small>© Foster’s Garage • Shared via Firebase Firestore</small>
     </footer>
   </div>
 
